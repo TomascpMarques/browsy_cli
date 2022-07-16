@@ -66,7 +66,7 @@ impl QueryStore {
         } else {
             self.logger
                 .restate_log("Query Storing", "Could not add to query history")
-                .failure()
+                .fail()
                 .log();
         }
     }

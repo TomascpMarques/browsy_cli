@@ -1,26 +1,110 @@
-use colored::{ColoredString, Colorize};
+use std::fmt::Display;
+
+use colored::Colorize;
 
 use crate::{pad, text_padding::TextPadding};
 
 #[derive(Debug, PartialEq, Hash, Clone)]
+/// A InfoLogger log is represented to the user as a pair
+/// made of a __tittle and a message__, these after being
+/// applied a log type _(ie.: success, warn, failure, etc.)_
+/// will be built into the final log message, ready
+/// to be print out.
 pub struct InfoLogger {
-    pub title: &'static str,
+    pub tittle: &'static str,
     pub message: &'static str,
     log: String,
+}
+
+#[macro_export]
+/// __inform!()__ is a macro that simplifies log usage, when
+/// the need is for a simple message or two, and not a fully
+/// detailed comprehension of an operation or state is needed.
+/// There for, it can be used with an existing logging source,
+/// or create a new one, depending on the invocation of the
+/// macro.
+/// ## Example:
+/// ```
+/// # use crate::browsy_cli::logger::InfoLogger;
+/// # use crate::browsy_cli::inform;
+/// # fn main() {
+/// // No existing logger usage:
+///   inform!(success, "tittle" - "message")
+///   inform!(success, msg: "message")
+///   inform!(success, ttl: "tittle")
+/// // Existing logger usage:
+///   let mut logger = InfoLogger::new_default();
+///   inform!(warn, "tittle" - "message", logger)
+///   inform!(statement, msg: "message", logger)
+///   inform!(failure, ttl: "tittle", logger)
+/// # }
+/// ```
+macro_rules! inform {
+    ($loger: ident, $tittle:literal - $message:expr) => {
+        InfoLogger::new($tittle, $message).$loger().log()
+    };
+    ($loger: ident, msg: $message:expr) => {
+        InfoLogger::new("Info", $message).$loger().log()
+    };
+    ($loger: ident, ttl: $tittle:expr) => {
+        InfoLogger::new($tittle, "").$loger().log()
+    };
+    ($loger: ident, $tittle:literal - $message:expr, $source:expr) => {
+        $source.restate_log($tittle, $message).$loger().log()
+    };
+    ($loger: ident, msg: $message:expr, $source:expr) => {
+        $source.restate_log($source.tittle, $message).$loger().log()
+    };
+    ($loger: ident, ttl: $tittle:expr, $source:expr ) => {
+        $source.restate_log($tittle, $source.message).$loger().log()
+    };
+    ($loger: ident, $source:expr ) => {
+        $source.$loger().log()
+    };
 }
 
 impl InfoLogger {
     const LOG_TEMPLATE: &'static str = "#$1# #$2#";
 
-    pub fn new(title: &'static str, message: &'static str) -> Self {
+    pub fn new_default() -> Self {
         Self {
-            title,
+            tittle: Default::default(),
+            message: Default::default(),
+            log: Default::default(),
+        }
+    }
+
+    pub fn new(tittle: &'static str, message: &'static str) -> Self {
+        Self {
+            tittle,
             message,
             ..Default::default()
         }
     }
 
-    pub fn template_replace(templ: &str, pairs: Vec<(i32, ColoredString)>) -> String {
+    /// Replaces template literals in a `&str`, with the correspondig value,
+    /// insside a (index, value) tuple.
+    /// ## Example:
+    /// ```
+    /// # use crate::browsy_cli::logger::InfoLogger;
+    /// # fn main() {
+    ///   let template_str = "This is a cool template string bool !";
+    ///   let built_template = InfoLogger::template_replace(
+    ///      // Tou can repeat template literals in the string
+    ///      // allowing you to reuse values allong the entire string
+    ///      "This is #$1# co#$2# template #$3# bo#$2# #$4#",
+    ///       vec![
+    ///           (1, "a"), (2, "ol"),
+    ///           (3, "string"), (4, "!"),
+    ///       ],
+    ///   );
+    ///   assert_eq!(template_str, built_template)
+    /// # }
+    /// ```
+    pub fn template_replace<T>(templ: &str, pairs: Vec<(i32, T)>) -> String
+    where
+        T: Display,
+    {
         let mut builder = String::from(templ);
         pairs.iter().for_each(|pair| {
             builder = builder.replace(
@@ -31,66 +115,158 @@ impl InfoLogger {
         builder
     }
 
-    pub fn restate_log(&mut self, title: &'static str, message: &'static str) -> &mut InfoLogger {
+    /// Restates the tittle and message used for each log message, use it to change the
+    /// info shown to the user, usually between log printing.
+    /// ## Example:
+    /// ```
+    /// # use crate::browsy_cli::logger::InfoLogger;
+    /// # fn main() {
+    ///   let mut info_logger = InfoLogger::new("1tittle1", "1Message1")
+    ///     .warning().log()
+    ///     .restate_log("AAA", "BBB")
+    ///     .success().log();
+    /// # }
+    /// ```
+    pub fn restate_log(&mut self, tittle: &'static str, message: &'static str) -> &mut InfoLogger {
         self.message = message;
-        self.title = title;
+        self.tittle = tittle;
         self
     }
 
+    /// Builds a `default` log, a statement, with no conotations attached.
+    /// ## Example:
+    /// ```
+    /// # use crate::browsy_cli::logger::InfoLogger;
+    /// # use crate::browsy_cli::inform;
+    /// # fn main() {
+    ///   let mut info_logger = InfoLogger::new("1tittle1", "1Message1");
+    ///   info_logger.statement().log();
+    ///
+    ///   // Or with a simple to use macro:
+    ///   // Example 1 - Uses an existing Logger
+    ///   inform!(statement, info_logger);
+    ///   // Example 2 - No existing Logger, just spit out the info
+    ///   inform!(statement, "Tip" - "You look great :)");
+    /// # }
+    /// ```
     pub fn statement(&mut self) -> &mut InfoLogger {
         self.log = Self::template_replace(
             Self::LOG_TEMPLATE,
             vec![
-                (1, pad!(self.title).on_blue().bold()),
-                (2, pad!(self.message).white().italic()),
+                (1, self.tittle.p().on_blue().bold()),
+                (2, self.message.p().white().italic()),
             ],
         );
         self
     }
 
-    pub fn warning(&mut self) -> &mut InfoLogger {
+    /// Builds a `warning` log, colored to look like one.
+    /// ## Example:
+    /// ```
+    /// # use crate::browsy_cli::logger::InfoLogger;
+    /// # use crate::browsy_cli::inform;
+    /// # fn main() {
+    ///   let mut info_logger = InfoLogger::new("1tittle1", "1Message1");
+    ///   info_logger.warn().log();
+    ///
+    ///   // Or with a simple to use macro:
+    ///   // Example 1 - Uses an existing Logger
+    ///   inform!(warn, info_logger);
+    ///   // Example 2 - No existing Logger, just spit out the info
+    ///   inform!(warn, "WARNING" - "Did you remember to have lunch?");
+    /// # }
+    /// ```
+    pub fn warn(&mut self) -> &mut InfoLogger {
         self.log = Self::template_replace(
             Self::LOG_TEMPLATE,
             vec![
-                (1, pad!(self.title).white().on_bright_yellow().bold()),
-                (2, pad!(self.message).yellow().bold()),
+                (
+                    1,
+                    pad!(self.tittle)
+                        .white()
+                        .on_bright_yellow()
+                        .bold()
+                        .to_string(),
+                ),
+                (2, self.message.p().yellow().bold().to_string()),
             ],
         );
         self
     }
 
+    /// Builds a `success` log, colored to look like one.
+    /// ## Example:
+    /// ```
+    /// # use crate::browsy_cli::logger::InfoLogger;
+    /// # use crate::browsy_cli::inform;
+    /// # fn main() {
+    ///   let mut info_logger = InfoLogger::new("1tittle1", "1Message1");
+    ///   info_logger.success().log();
+    ///
+    ///   // Or with a simple to use macro:
+    ///   // Example 1 - Uses an existing Logger
+    ///   inform!(success, info_logger);
+    ///   // Example 2 - No existing Logger, just spit out the info
+    ///   inform!(success, "WARNING" - "Did you remember to have lunch?");
+    /// # }
+    /// ```
     pub fn success(&mut self) -> &mut InfoLogger {
         self.log = Self::template_replace(
             Self::LOG_TEMPLATE,
             vec![
-                (1, self.title.pad(" ", 1).on_green().bold()),
+                (1, self.tittle.pad(" ", 1).on_green().bold()),
                 (2, self.message.pad(" ", 1).underline().bright_green()),
             ],
         );
         self
     }
 
-    pub fn failure(&mut self) -> &mut InfoLogger {
+    /// Builds a `failure` log, colored to look like one.
+    /// ## Example:
+    /// ```
+    /// # use crate::browsy_cli::logger::InfoLogger;
+    /// # use crate::browsy_cli::inform;
+    /// # fn main() {
+    ///   let mut info_logger = InfoLogger::new("1tittle1", "1Message1");
+    ///   info_logger.fail().log();
+    ///
+    ///   // Or with a simple to use macro:
+    ///   // Example 1 - Uses an existing Logger
+    ///   inform!(fail, info_logger);
+    ///   // Example 2 - No existing Logger, just spit out the info
+    ///   inform!(fail, "WARNING" - "Did you remember to have lunch?");
+    /// # }
+    /// ```
+    pub fn fail(&mut self) -> &mut InfoLogger {
         self.log = Self::template_replace(
             Self::LOG_TEMPLATE,
             vec![
-                (1, pad!(self.title).on_red().white().bold()),
+                (1, pad!(self.tittle).on_red().white().bold()),
                 (2, pad!(self.message).yellow().bold().underline()),
             ],
         );
         self
     }
 
-    pub fn write(&self) {
-        println!("{}", self.log)
-    }
-
+    /// Prints to the standard output, with a newline, the colored
+    /// contents of the log message. __If no template was applied to the
+    /// logger, it will return an empty string__.
+    /// ## Example:
+    /// ```
+    /// # use crate::browsy_cli::logger::InfoLogger;
+    /// # use crate::browsy_cli::inform;
+    /// # fn main() {
+    ///   let mut info_logger = InfoLogger::new("1tittle1", "1Message1");
+    ///   info_logger.fail().log();
+    /// # }
+    /// ```
     pub fn log(&mut self) -> &mut Self {
         println!("{}", self.log);
         self
     }
 
-    pub fn copy_log(&self) -> String {
+    /// Clone the logs contents, and returns that cloned `String`.
+    pub fn clone_log(&self) -> String {
         self.log.clone()
     }
 }
@@ -98,7 +274,7 @@ impl InfoLogger {
 impl Default for InfoLogger {
     fn default() -> Self {
         Self {
-            title: Default::default(),
+            tittle: Default::default(),
             message: Default::default(),
             log: Default::default(),
         }
@@ -115,9 +291,9 @@ mod test {
 
     #[test]
     fn build_log_struct() {
-        let have = InfoLogger::new("title", "message");
+        let have = InfoLogger::new("tittle", "message");
         let want = InfoLogger {
-            title: "title",
+            tittle: "tittle",
             message: "message",
             log: "".to_string(),
         };
@@ -126,10 +302,10 @@ mod test {
 
     #[test]
     fn test_log_printing() {
-        let _ = InfoLogger::new("title", "message").statement().log();
-        let _ = InfoLogger::new("title", "message").warning().log();
-        let _ = InfoLogger::new("title", "message").success().log();
-        let _ = InfoLogger::new("title", "message").failure().log();
+        let _ = InfoLogger::new("tittle", "message").statement().log();
+        let _ = InfoLogger::new("tittle", "message").warn().log();
+        let _ = InfoLogger::new("tittle", "message").success().log();
+        let _ = InfoLogger::new("tittle", "message").fail().log();
 
         // remove comment to see output
         // assert!(false)
@@ -137,9 +313,9 @@ mod test {
 
     #[test]
     fn test_copy_log_message() {
-        let mut target = InfoLogger::new("title", "message");
+        let mut target = InfoLogger::new("tittle", "message");
         let want = target.statement().clone().log;
-        let have = target.copy_log();
+        let have = target.clone_log();
 
         assert_eq!(want, have)
     }
@@ -147,27 +323,27 @@ mod test {
     #[test]
     fn test_restate_log_info() {
         let have = (
-            InfoLogger::new("title", "message")
-                .restate_log("TITLE", "MESSAGE")
-                .title,
-            InfoLogger::new("title", "message")
-                .restate_log("TITLE", "MESSAGE")
+            InfoLogger::new("tittle", "message")
+                .restate_log("tittle", "MESSAGE")
+                .tittle,
+            InfoLogger::new("tittle", "message")
+                .restate_log("tittle", "MESSAGE")
                 .message,
         );
-        let want = InfoLogger::new("TITLE", "MESSAGE");
+        let want = InfoLogger::new("tittle", "MESSAGE");
 
-        assert_eq!((want.title, want.message), have)
+        assert_eq!((want.tittle, want.message), have)
     }
 
     #[test]
     fn test_log_template_replace() {
         let template = "#$1# #$2#";
-        let temp = InfoLogger::new("title", "message").statement().copy_log();
+        let temp = InfoLogger::new("tittle", "message").statement().clone_log();
 
         let have = InfoLogger::template_replace(
             template,
             vec![
-                (1, pad!("title").on_blue().bold()),
+                (1, pad!("tittle").on_blue().bold()),
                 (2, pad!("message").white().italic()),
             ],
         );
@@ -175,12 +351,12 @@ mod test {
         assert_eq!(temp, have);
 
         let template = "#$1# #$2#";
-        let temp = InfoLogger::new("title", "message").statement().copy_log();
+        let temp = InfoLogger::new("tittle", "message").statement().clone_log();
 
         let have = InfoLogger::template_replace(
             template,
             vec![
-                (1, pad!("title").on_black().bold()),
+                (1, pad!("tittle").on_black().bold()),
                 (2, pad!("messagee").white().on_bright_green()),
             ],
         );
@@ -188,42 +364,18 @@ mod test {
         assert_ne!(temp, have);
 
         let template = "#$1# #$2#";
-        let temp = InfoLogger::new("title", "message").statement().copy_log();
+        let temp = InfoLogger::new("tittle", "message").statement().clone_log();
 
         let have = InfoLogger::template_replace(
             template,
             vec![
-                (1, pad!("titleII").on_blue().bold()),
+                (1, pad!("tittleII").on_blue().bold()),
                 (2, pad!("message###").white().italic()),
             ],
         );
 
         assert_ne!(temp, have)
     }
-}
-
-#[macro_export]
-macro_rules! inform {
-    ($loger: ident, $title:literal - $message:expr) => {
-        InfoLogger::new($title, $message).$loger().log()
-    };
-    ($loger: ident, msg: $message:expr) => {
-        InfoLogger::new("Info", $message).success().log()
-    };
-    ($loger: ident, ttl: $title:expr) => {
-        InfoLogger::new($title, "Something has occurred...")
-            .$loger()
-            .log()
-    };
-    ($loger: ident, $title:literal - $message:expr, $source:expr) => {
-        $source.restate_log($title, $message).$loger().log()
-    };
-    ($loger: ident, msg: $message:expr, $source:expr) => {
-        $source.restate_log($source.title, $message).$loger().log()
-    };
-    ($loger: ident, ttl: $title:expr, $source:expr ) => {
-        $source.restate_log($title, $source.message).$loger().log()
-    };
 }
 
 #[cfg(test)]
@@ -238,13 +390,13 @@ mod test_log_macros {
     #[test]
     fn test_inform_macro_source() {
         let mut s = InfoLogger::new("Sourced", "Log");
-        inform!(failure, "Hello" - "World", s);
+        inform!(fail, "Hello" - "World", s);
         assert!(true)
     }
     #[test]
-    fn test_inform_macro_source_no_title() {
+    fn test_inform_macro_source_no_tittle() {
         let mut s = InfoLogger::new("WARNING", "Log");
-        inform!(warning, msg: "Hello", s);
+        inform!(warn, msg: "Hello", s);
         assert!(true)
     }
     #[test]
@@ -259,8 +411,8 @@ mod test_log_macros {
         assert!(true)
     }
     #[test]
-    fn test_inform_macro_no_title() {
-        inform!(statement, msg: "No title here");
+    fn test_inform_macro_no_tittle() {
+        inform!(statement, msg: "No tittle here");
         assert!(true)
     }
 }

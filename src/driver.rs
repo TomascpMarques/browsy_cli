@@ -40,8 +40,8 @@ impl Driver {
                         "Request Building",
                         "Could not create request from string query",
                     )
-                    .failure()
-                    .write();
+                    .fail()
+                    .log();
                 exit(1)
             }
         };
@@ -59,8 +59,8 @@ impl Driver {
                         "Bad Response",
                         "Could not read the text content of the response",
                     )
-                    .failure()
-                    .write();
+                    .fail()
+                    .log();
                 exit(3)
             }
         };

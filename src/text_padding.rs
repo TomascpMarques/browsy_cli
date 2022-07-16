@@ -34,7 +34,7 @@ pub trait TextPadding {
         )
     }
 
-    fn pad_once(&self) -> String
+    fn p(&self) -> String
     where
         Self: Display,
     {
