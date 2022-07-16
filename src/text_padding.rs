@@ -33,6 +33,18 @@ pub trait TextPadding {
             p.to_string().repeat(c)
         )
     }
+
+    fn pad_once(&self) -> String
+    where
+        Self: Display,
+    {
+        format!(
+            "{}{}{}",
+            " ".to_string().repeat(1),
+            self,
+            " ".to_string().repeat(1)
+        )
+    }
 }
 
 impl TextPadding for &str {}
