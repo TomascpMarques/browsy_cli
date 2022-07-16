@@ -29,14 +29,14 @@ pub struct InfoLogger {
 /// # use crate::browsy_cli::inform;
 /// # fn main() {
 /// // No existing logger usage:
-///   inform!(success, "tittle" - "message")
-///   inform!(success, msg: "message")
-///   inform!(success, ttl: "tittle")
+///   inform!(success, "tittle" - "message");
+///   inform!(success, msg: "message");
+///   inform!(success, ttl: "tittle");
 /// // Existing logger usage:
 ///   let mut logger = InfoLogger::new_default();
-///   inform!(warn, "tittle" - "message", logger)
-///   inform!(statement, msg: "message", logger)
-///   inform!(failure, ttl: "tittle", logger)
+///   inform!(warn, "tittle" - "message", logger);
+///   inform!(statement, msg: "message", logger);
+///   inform!(failure, ttl: "tittle", logger);
 /// # }
 /// ```
 macro_rules! inform {
