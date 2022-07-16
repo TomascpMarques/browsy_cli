@@ -188,7 +188,7 @@ mod test {
             template,
             vec![
                 (1, pad!("title").on_black().bold()),
-                (2, pad!("message").white().on_bright_green()),
+                (2, pad!("messagee").white().on_bright_green()),
             ],
         );
 
