@@ -192,7 +192,7 @@ mod test {
             ],
         );
 
-        assert_ne!(temp, have);
+        assert_eq!(temp, have);
         let template = "#$1# #$2#";
         let temp = Logger::new("title", "message").default_log().copy_log();
 
