@@ -1,4 +1,4 @@
-# B r w o s y
+# B r o w s y
 
 ## What is browsy?
 
