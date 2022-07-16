@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::logger::Logger;
+use crate::logger::InfoLogger;
 
 use chrono::Utc;
 
@@ -49,7 +49,7 @@ impl Default for Query {
 }
 
 pub struct QueryStore {
-    pub(crate) logger: Logger,
+    pub(crate) logger: InfoLogger,
     pub(crate) history: HashMap<ContentSource, Vec<Query>>,
     pub(crate) last_query: (Query, String),
 }
@@ -59,14 +59,14 @@ impl QueryStore {
         Self::default()
     }
 
-    pub fn add_new_query(&mut self, q: Query, result: String) {
-        self.last_query = (q.clone(), result);
-        if let Some(entry) = self.history.get_mut(&q.target) {
-            entry.push(q)
+    pub fn add_new_query(&mut self, query: Query, result: String) {
+        self.last_query = (query.clone(), result);
+        if let Some(entry) = self.history.get_mut(&query.target) {
+            entry.push(query)
         } else {
             self.logger
                 .restate_log("Query Storing", "Could not add to query history")
-                .failure_log()
+                .failure()
                 .log();
         }
     }
@@ -82,7 +82,7 @@ impl Default for QueryStore {
         Self {
             history: default_hmap_keys,
             last_query: Default::default(),
-            logger: Logger::default(),
+            logger: Default::default(),
         }
     }
 }
