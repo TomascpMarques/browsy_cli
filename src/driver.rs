@@ -1,6 +1,7 @@
-use crate::{inform, querys::Query, text_utills::explain_something};
+use crate::{inform, line_separator, querys::Query, text_utills::explain_something};
 use chrono::Utc;
 use clap::Parser;
+use colored::Colorize;
 use std::process::exit;
 
 use crate::{cli::CLI, content_source::ContentSource, logger::InfoLogger, querys};
@@ -25,6 +26,15 @@ impl Driver {
     pub fn run_query_against_source(&mut self) -> () {
         let target_domain = ContentSource::from(self.cli.source());
         let query_string = ContentSource::generate_query_string(&target_domain, &self.cli.query());
+
+        line_separator!();
+        inform!(
+            statement,
+            "Searching".to_string(),
+            self.cli.query().to_uppercase(),
+            self.logger
+        );
+        line_separator!();
 
         let query_request = match self.web_client.get(query_string.clone()).build() {
             Ok(request) => {

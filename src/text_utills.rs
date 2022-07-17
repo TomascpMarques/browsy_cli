@@ -2,6 +2,16 @@ use std::fmt::Display;
 
 use colored::Colorize;
 
+#[macro_export]
+macro_rules! line_separator {
+    () => {
+        println!("{}", "⁘".repeat(30).bright_black());
+    };
+    ($c: tt) => {
+        println!("{}", "⁘".repeat($c).bright_black());
+    };
+}
+
 pub fn explain_something<K, T>(reason: T, explanation: K) -> String
 where
     K: Display,
