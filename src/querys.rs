@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use crate::inform;
 use crate::logger::InfoLogger;
 
 use chrono::Utc;
@@ -64,10 +65,12 @@ impl QueryStore {
         if let Some(entry) = self.history.get_mut(&query.target) {
             entry.push(query)
         } else {
-            self.logger
-                .restate_log("Query Storing", "Could not add to query history")
-                .fail()
-                .log();
+            inform!(
+                fail,
+                "Query Storing".to_string(),
+                "Could not add to query history".to_string(),
+                self.logger
+            );
         }
     }
 }
