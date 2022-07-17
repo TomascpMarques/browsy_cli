@@ -1,5 +1,12 @@
 pub use clap::Parser;
 
+/*
+    TODO
+    The docs.rs website can specifie throug a hash, the query, number of results and page index
+    i.e: P3E9R2VuZXJpY3MmcGVyX3BhZ2U9MiZwYWdlPTE -> ?q=Generics&per_page=2&page=1
+    GOTTA ACCOUNT FOR THIS
+*/
+
 /// A CLI tool to research your programming doubts
 #[derive(Parser, Debug, Clone)]
 #[clap(author, version, about, long_about = None)]

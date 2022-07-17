@@ -2,7 +2,7 @@ use crate::{inform, line_separator, querys::Query, text_utills::explain_somethin
 use chrono::Utc;
 use clap::Parser;
 use colored::Colorize;
-use std::{ops::Deref, process::exit};
+use std::process::exit;
 
 use crate::{cli::CLI, content_source::ContentSource, logger::InfoLogger, querys};
 
