@@ -18,8 +18,12 @@ where
     T: Display,
 {
     format!(
-        "{} {reason}\n{explanation}\n",
-        "* Explanation *".p().white().on_blue()
+        "{} {}\n{}\n{}\n{}",
+        "* Info *".p().white().on_blue().bold(),
+        reason.to_string().white().bold(),
+        "⁘".repeat(30).bright_black(),
+        explanation.to_string().white(),
+        "⁘".repeat(30).bright_black(),
     )
 }
 
@@ -37,8 +41,10 @@ mod test_loose_functions {
         let have = explain_something(reason, explanation);
 
         let want = format!(
-            "{} {reason}\n{explanation}\n",
-            "* Explanation *".p().white().on_blue()
+            "{} {}\n{}\n",
+            "* Explanation *".p().white().on_blue().bold(),
+            reason.to_string().white().bold(),
+            explanation.to_string().white(),
         );
 
         assert_eq!(have, want)

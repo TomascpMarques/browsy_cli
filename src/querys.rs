@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::fmt::Display;
 
 use crate::inform;
 use crate::logger::InfoLogger;
@@ -15,6 +16,12 @@ pub struct Query {
     pub(crate) target: ContentSource,
     pub query: String,
     pub date: DateTime<Utc>,
+}
+
+impl Display for Query {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:#?}", self)
+    }
 }
 
 impl Query {

@@ -2,7 +2,7 @@ use crate::{inform, line_separator, querys::Query, text_utills::explain_somethin
 use chrono::Utc;
 use clap::Parser;
 use colored::Colorize;
-use std::process::exit;
+use std::{ops::Deref, process::exit};
 
 use crate::{cli::CLI, content_source::ContentSource, logger::InfoLogger, querys};
 
@@ -23,7 +23,7 @@ impl Driver {
         }
     }
 
-    pub fn run_query_against_source(&mut self) -> () {
+    pub fn run_query_against_source(&mut self) -> &mut Self {
         let target_domain = ContentSource::from(self.cli.source());
         let query_string = ContentSource::generate_query_string(&target_domain, &self.cli.query());
 
@@ -88,10 +88,16 @@ impl Driver {
             Query::new(target_domain, &self.cli.query(), Utc::now()),
             query_response_string,
         );
+
+        self
     }
 
     pub fn querys(&self) -> &querys::QueryStore {
         &self.querys
+    }
+
+    pub fn intrepert_query_result(&self) {
+        todo!()
     }
 
     pub fn get_last_query(&self) -> &(Query, String) {
