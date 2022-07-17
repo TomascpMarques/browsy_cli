@@ -41,10 +41,12 @@ mod test_loose_functions {
         let have = explain_something(reason, explanation);
 
         let want = format!(
-            "{} {}\n{}\n",
-            "* Explanation *".p().white().on_blue().bold(),
+            "{} {}\n{}\n{}\n{}",
+            "* Info *".p().white().on_blue().bold(),
             reason.to_string().white().bold(),
+            "⁘".repeat(30).bright_black(),
             explanation.to_string().white(),
+            "⁘".repeat(30).bright_black(),
         );
 
         assert_eq!(have, want)
