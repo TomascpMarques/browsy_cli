@@ -1,12 +1,5 @@
 use std::fmt::Display;
 
-#[macro_export]
-macro_rules! pad {
-    ($string: expr) => {
-        $string.pad(" ", 1)
-    };
-}
-
 pub trait TextPadding {
     fn pad_left(&self, p: &str, c: usize) -> String
     where
@@ -115,13 +108,6 @@ mod test {
     fn pad_both_sides_1() {
         let want = " lorem ";
         let have = "lorem".pad(" ", 1);
-        assert_eq!(want, have)
-    }
-
-    #[test]
-    fn macro_pad_both_1() {
-        let want = " lorem ";
-        let have = pad!("lorem");
         assert_eq!(want, have)
     }
 }
