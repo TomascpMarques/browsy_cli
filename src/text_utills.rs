@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use colored::Colorize;
 
-pub fn explain_reason<K, T>(reason: T, explanation: K) -> String
+pub fn explain_something<K, T>(reason: T, explanation: K) -> String
 where
     K: Display,
     T: Display,
@@ -17,14 +17,14 @@ where
 mod test_loose_functions {
     use colored::Colorize;
 
-    use super::{explain_reason, TextPadding};
+    use super::{explain_something, TextPadding};
 
     #[test]
     fn test_explain_reason_strs() {
         let reason = "Bad parameter was given";
         let explanation = "Was expecting a simple susum, got a complex clinical depression";
 
-        let have = explain_reason(reason, explanation);
+        let have = explain_something(reason, explanation);
 
         let want = format!(
             "{} {reason}\n{explanation}\n",

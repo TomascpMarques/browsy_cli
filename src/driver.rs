@@ -1,4 +1,4 @@
-use crate::{inform, querys::Query, text_utills::explain_reason};
+use crate::{inform, querys::Query, text_utills::explain_something};
 use chrono::Utc;
 use clap::Parser;
 use std::process::exit;
@@ -64,7 +64,7 @@ impl Driver {
                 inform!(
                     fail,
                     "Bad Response".to_string(),
-                    explain_reason(
+                    explain_something(
                         "Could not read the text content of the response",
                         why.to_string()
                     ),
