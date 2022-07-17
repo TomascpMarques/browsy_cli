@@ -11,8 +11,8 @@ use crate::{pad, text_padding::TextPadding};
 /// will be built into the final log message, ready
 /// to be print out.
 pub struct InfoLogger {
-    pub tittle: &'static str,
-    pub message: &'static str,
+    pub tittle: String,
+    pub message: String,
     log: String,
 }
 
@@ -29,34 +29,40 @@ pub struct InfoLogger {
 /// # use crate::browsy_cli::inform;
 /// # fn main() {
 /// // No existing logger usage:
-///   inform!(success, "tittle" - "message");
-///   inform!(success, msg: "message");
-///   inform!(success, ttl: "tittle");
+///   inform!(success, "tittle".to_string(), "message".to_string());
+///   inform!(success, msg: "message".to_string());
+///   inform!(success, ttl: "tittle".to_string());
 /// // Existing logger usage:
 ///   let mut logger = InfoLogger::new_default();
-///   inform!(warn, "tittle" - "message", logger);
-///   inform!(statement, msg: "message", logger);
-///   inform!(failure, ttl: "tittle", logger);
+///   inform!(warn, "tittle".to_string(), "message".to_string(), logger);
+///   inform!(statement, msg: "message".to_string(), logger);
+///   inform!(failure, ttl: "tittle".to_string(), logger);
 /// # }
 /// ```
 macro_rules! inform {
-    ($loger: ident, $tittle:literal - $message:expr) => {
+    ($loger: ident, $tittle:expr, $message:expr) => {
         InfoLogger::new($tittle, $message).$loger().log()
     };
-    ($loger: ident, msg: $message:expr) => {
-        InfoLogger::new("Info", $message).$loger().log()
+    ($loger: ident, msg $message:expr) => {
+        InfoLogger::new("Info".to_string(), $message).$loger().log()
     };
-    ($loger: ident, ttl: $tittle:expr) => {
-        InfoLogger::new($tittle, "").$loger().log()
+    ($loger: ident, ttl $tittle:expr) => {
+        InfoLogger::new($tittle, String::default()).$loger().log()
     };
-    ($loger: ident, $tittle:literal - $message:expr, $source:expr) => {
+    ($loger: ident, $tittle:expr, $message:expr, $source:expr) => {
         $source.restate_log($tittle, $message).$loger().log()
     };
-    ($loger: ident, msg: $message:expr, $source:expr) => {
-        $source.restate_log($source.tittle, $message).$loger().log()
+    ($loger: ident, msg $message:expr, $source:expr) => {
+        $source
+            .restate_log($source.tittle.clone(), $message)
+            .$loger()
+            .log()
     };
-    ($loger: ident, ttl: $tittle:expr, $source:expr ) => {
-        $source.restate_log($tittle, $source.message).$loger().log()
+    ($loger: ident, ttl $tittle:expr, $source:expr ) => {
+        $source
+            .restate_log($tittle, $source.message.clone())
+            .$loger()
+            .log()
     };
     ($loger: ident, $source:expr ) => {
         $source.$loger().log()
@@ -74,7 +80,7 @@ impl InfoLogger {
         }
     }
 
-    pub fn new(tittle: &'static str, message: &'static str) -> Self {
+    pub fn new(tittle: String, message: String) -> Self {
         Self {
             tittle,
             message,
@@ -101,7 +107,7 @@ impl InfoLogger {
     ///   assert_eq!(template_str, built_template)
     /// # }
     /// ```
-    pub fn template_replace<T>(templ: &str, pairs: Vec<(i32, T)>) -> String
+    pub fn template_replace<T>(templ: &'static str, pairs: Vec<(i32, T)>) -> String
     where
         T: Display,
     {
@@ -127,7 +133,7 @@ impl InfoLogger {
     ///     .success().log();
     /// # }
     /// ```
-    pub fn restate_log(&mut self, tittle: &'static str, message: &'static str) -> &mut InfoLogger {
+    pub fn restate_log(&mut self, tittle: String, message: String) -> &mut InfoLogger {
         self.message = message;
         self.tittle = tittle;
         self
@@ -291,10 +297,10 @@ mod test {
 
     #[test]
     fn build_log_struct() {
-        let have = InfoLogger::new("tittle", "message");
+        let have = InfoLogger::new("tittle".to_string(), "message".to_string());
         let want = InfoLogger {
-            tittle: "tittle",
-            message: "message",
+            tittle: "tittle".to_string(),
+            message: "message".to_string(),
             log: "".to_string(),
         };
         assert_eq!(want, have)
@@ -302,10 +308,18 @@ mod test {
 
     #[test]
     fn test_log_printing() {
-        let _ = InfoLogger::new("tittle", "message").statement().log();
-        let _ = InfoLogger::new("tittle", "message").warn().log();
-        let _ = InfoLogger::new("tittle", "message").success().log();
-        let _ = InfoLogger::new("tittle", "message").fail().log();
+        let _ = InfoLogger::new("tittle".to_string(), "message".to_string())
+            .statement()
+            .log();
+        let _ = InfoLogger::new("tittle".to_string(), "message".to_string())
+            .warn()
+            .log();
+        let _ = InfoLogger::new("tittle".to_string(), "message".to_string())
+            .success()
+            .log();
+        let _ = InfoLogger::new("tittle".to_string(), "message".to_string())
+            .fail()
+            .log();
 
         // remove comment to see output
         // assert!(false)
@@ -313,7 +327,7 @@ mod test {
 
     #[test]
     fn test_copy_log_message() {
-        let mut target = InfoLogger::new("tittle", "message");
+        let mut target = InfoLogger::new("tittle".to_string(), "message".to_string());
         let want = target.statement().clone().log;
         let have = target.clone_log();
 
@@ -323,14 +337,16 @@ mod test {
     #[test]
     fn test_restate_log_info() {
         let have = (
-            InfoLogger::new("tittle", "message")
-                .restate_log("tittle", "MESSAGE")
-                .tittle,
-            InfoLogger::new("tittle", "message")
-                .restate_log("tittle", "MESSAGE")
-                .message,
+            InfoLogger::new("tittle".to_string(), "message".to_string())
+                .restate_log("tittle".to_string(), "MESSAGE".to_string())
+                .tittle
+                .clone(),
+            InfoLogger::new("tittle".to_string(), "message".to_string())
+                .restate_log("tittle".to_string(), "MESSAGE".to_string())
+                .message
+                .clone(),
         );
-        let want = InfoLogger::new("tittle", "MESSAGE");
+        let want = InfoLogger::new("tittle".to_string(), "MESSAGE".to_string());
 
         assert_eq!((want.tittle, want.message), have)
     }
@@ -338,25 +354,29 @@ mod test {
     #[test]
     fn test_log_template_replace() {
         let template = "#$1# #$2#";
-        let temp = InfoLogger::new("tittle", "message").statement().clone_log();
+        let temp = InfoLogger::new("tittle".to_string(), "message".to_string())
+            .statement()
+            .clone_log();
 
         let have = InfoLogger::template_replace(
             template,
             vec![
-                (1, pad!("tittle").on_blue().bold()),
-                (2, pad!("message").white().italic()),
+                (1, pad!("tittle".to_string()).on_blue().bold()),
+                (2, pad!("message".to_string()).white().italic()),
             ],
         );
 
         assert_eq!(temp, have);
 
         let template = "#$1# #$2#";
-        let temp = InfoLogger::new("tittle", "message").statement().clone_log();
+        let temp = InfoLogger::new("tittle".to_string(), "message".to_string())
+            .statement()
+            .clone_log();
 
         let have = InfoLogger::template_replace(
             template,
             vec![
-                (1, pad!("tittle").on_black().bold()),
+                (1, pad!("tittle".to_string()).on_black().bold()),
                 (2, pad!("messagee").white().on_bright_green()),
             ],
         );
@@ -364,7 +384,9 @@ mod test {
         assert_ne!(temp, have);
 
         let template = "#$1# #$2#";
-        let temp = InfoLogger::new("tittle", "message").statement().clone_log();
+        let temp = InfoLogger::new("tittle".to_string(), "message".to_string())
+            .statement()
+            .clone_log();
 
         let have = InfoLogger::template_replace(
             template,
@@ -384,35 +406,35 @@ mod test_log_macros {
 
     #[test]
     fn test_inform_macro_simple() {
-        inform!(success, "Hello" - "World");
+        inform!(success, "Hello".to_string(), "World".to_string());
         assert!(true)
     }
     #[test]
     fn test_inform_macro_source() {
-        let mut s = InfoLogger::new("Sourced", "Log");
-        inform!(fail, "Hello" - "World", s);
+        let mut s = InfoLogger::new("Sourced".to_string(), "Log".to_string());
+        inform!(fail, "Hello".to_string(), "World".to_string(), s);
         assert!(true)
     }
     #[test]
     fn test_inform_macro_source_no_tittle() {
-        let mut s = InfoLogger::new("WARNING", "Log");
-        inform!(warn, msg: "Hello", s);
+        let mut s = InfoLogger::new("WARNING".to_string(), "Log".to_string());
+        inform!(warn, msg "Hello".to_string(), s);
         assert!(true)
     }
     #[test]
     fn test_inform_macro_source_no_message() {
-        let mut s = InfoLogger::new("Sourced", "Log");
-        inform!(statement, ttl: "Hello", s);
+        let mut s = InfoLogger::new("Sourced".to_string(), "Log".to_string());
+        inform!(statement, ttl "Hello".to_string(), s);
         assert!(true)
     }
     #[test]
     fn test_inform_macro_no_message() {
-        inform!(success, ttl: "No message given");
+        inform!(success, ttl "No message given".to_string());
         assert!(true)
     }
     #[test]
     fn test_inform_macro_no_tittle() {
-        inform!(statement, msg: "No tittle here");
+        inform!(statement, msg "No tittle here".to_string());
         assert!(true)
     }
 }
