@@ -13,7 +13,7 @@ pub struct CLI {
     source: String,
 
     /// Allows for usage of an interactive mode, selecting multiple factors
-    #[clap(short, default_missing_value = "y")]
+    #[clap(short, default_value = "n", required = false)]
     interactive: char,
 }
 
