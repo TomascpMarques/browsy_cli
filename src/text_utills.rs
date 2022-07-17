@@ -1,5 +1,40 @@
 use std::fmt::Display;
 
+use colored::Colorize;
+
+pub fn explain_reason<K, T>(reason: T, explanation: K) -> String
+where
+    K: Display,
+    T: Display,
+{
+    format!(
+        "{} {reason}\n{explanation}\n",
+        "* Explanation *".p().white().on_blue()
+    )
+}
+
+#[cfg(test)]
+mod test_loose_functions {
+    use colored::Colorize;
+
+    use super::{explain_reason, TextPadding};
+
+    #[test]
+    fn test_explain_reason_strs() {
+        let reason = "Bad parameter was given";
+        let explanation = "Was expecting a simple susum, got a complex clinical depression";
+
+        let have = explain_reason(reason, explanation);
+
+        let want = format!(
+            "{} {reason}\n{explanation}\n",
+            "* Explanation *".p().white().on_blue()
+        );
+
+        assert_eq!(have, want)
+    }
+}
+
 pub trait TextPadding {
     fn pad_left(&self, p: &str, c: usize) -> String
     where

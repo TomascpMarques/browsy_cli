@@ -1,4 +1,4 @@
-use crate::{inform, querys::Query};
+use crate::{inform, querys::Query, text_utills::explain_reason};
 use chrono::Utc;
 use clap::Parser;
 use std::process::exit;
@@ -56,14 +56,18 @@ impl Driver {
                     "Response is OK".to_string(),
                     self.logger
                 );
-
+                // Don't want to exit or crash here, so we will handle
+                // the lack of response content later, with a nice log message
                 r.text().unwrap_or(Default::default())
             }
-            Err(_) => {
+            Err(why) => {
                 inform!(
                     fail,
                     "Bad Response".to_string(),
-                    "Could not read the text content of the response".to_string(),
+                    explain_reason(
+                        "Could not read the text content of the response",
+                        why.to_string()
+                    ),
                     self.logger
                 );
                 exit(3)

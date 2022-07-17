@@ -2,12 +2,12 @@ use std::fmt::Display;
 
 use colored::Colorize;
 
-use crate::{pad, text_padding::TextPadding};
+use crate::text_utills::TextPadding;
 
 #[derive(Debug, PartialEq, Hash, Clone)]
 /// A InfoLogger log is represented to the user as a pair
 /// made of a __tittle and a message__, these after being
-/// applied a log type _(ie.: success, warn, failure, etc.)_
+/// applied a log type _(ie.: success, warn, fail, etc.)_
 /// will be built into the final log message, ready
 /// to be print out.
 pub struct InfoLogger {
@@ -30,13 +30,13 @@ pub struct InfoLogger {
 /// # fn main() {
 /// // No existing logger usage:
 ///   inform!(success, "tittle".to_string(), "message".to_string());
-///   inform!(success, msg: "message".to_string());
-///   inform!(success, ttl: "tittle".to_string());
+///   inform!(success, msg "message".to_string());
+///   inform!(success, ttl "tittle".to_string());
 /// // Existing logger usage:
 ///   let mut logger = InfoLogger::new_default();
 ///   inform!(warn, "tittle".to_string(), "message".to_string(), logger);
-///   inform!(statement, msg: "message".to_string(), logger);
-///   inform!(failure, ttl: "tittle".to_string(), logger);
+///   inform!(statement, msg "message".to_string(), logger);
+///   inform!(fail, ttl "tittle".to_string(), logger);
 /// # }
 /// ```
 macro_rules! inform {
@@ -127,9 +127,9 @@ impl InfoLogger {
     /// ```
     /// # use crate::browsy_cli::logger::InfoLogger;
     /// # fn main() {
-    ///   let mut info_logger = InfoLogger::new("1tittle1", "1Message1")
-    ///     .warning().log()
-    ///     .restate_log("AAA", "BBB")
+    ///   let mut info_logger = InfoLogger::new("1tittle1".to_string(), "1Message1".to_string())
+    ///     .warn().log()
+    ///     .restate_log("AAA".to_string(), "BBB".to_string())
     ///     .success().log();
     /// # }
     /// ```
@@ -145,14 +145,14 @@ impl InfoLogger {
     /// # use crate::browsy_cli::logger::InfoLogger;
     /// # use crate::browsy_cli::inform;
     /// # fn main() {
-    ///   let mut info_logger = InfoLogger::new("1tittle1", "1Message1");
+    ///   let mut info_logger = InfoLogger::new("1tittle1".to_string(), "1Message1".to_string());
     ///   info_logger.statement().log();
     ///
     ///   // Or with a simple to use macro:
     ///   // Example 1 - Uses an existing Logger
     ///   inform!(statement, info_logger);
     ///   // Example 2 - No existing Logger, just spit out the info
-    ///   inform!(statement, "Tip" - "You look great :)");
+    ///   inform!(statement, "Tip".to_string(), "You look great :)".to_string());
     /// # }
     /// ```
     pub fn statement(&mut self) -> &mut InfoLogger {
@@ -166,20 +166,20 @@ impl InfoLogger {
         self
     }
 
-    /// Builds a `warning` log, colored to look like one.
+    /// Builds a `warn` log, colored to look like one.
     /// ## Example:
     /// ```
     /// # use crate::browsy_cli::logger::InfoLogger;
     /// # use crate::browsy_cli::inform;
     /// # fn main() {
-    ///   let mut info_logger = InfoLogger::new("1tittle1", "1Message1");
+    ///   let mut info_logger = InfoLogger::new("1tittle1".to_string(), "1Message1".to_string());
     ///   info_logger.warn().log();
     ///
     ///   // Or with a simple to use macro:
     ///   // Example 1 - Uses an existing Logger
     ///   inform!(warn, info_logger);
     ///   // Example 2 - No existing Logger, just spit out the info
-    ///   inform!(warn, "WARNING" - "Did you remember to have lunch?");
+    ///   inform!(warn, "warn".to_string() , "Did you remember to have lunch?".to_string());
     /// # }
     /// ```
     pub fn warn(&mut self) -> &mut InfoLogger {
@@ -188,7 +188,8 @@ impl InfoLogger {
             vec![
                 (
                     1,
-                    pad!(self.tittle)
+                    self.tittle
+                        .p()
                         .white()
                         .on_bright_yellow()
                         .bold()
@@ -206,14 +207,14 @@ impl InfoLogger {
     /// # use crate::browsy_cli::logger::InfoLogger;
     /// # use crate::browsy_cli::inform;
     /// # fn main() {
-    ///   let mut info_logger = InfoLogger::new("1tittle1", "1Message1");
+    ///   let mut info_logger = InfoLogger::new("1tittle1".to_string(), "1Message1".to_string());
     ///   info_logger.success().log();
     ///
     ///   // Or with a simple to use macro:
     ///   // Example 1 - Uses an existing Logger
     ///   inform!(success, info_logger);
     ///   // Example 2 - No existing Logger, just spit out the info
-    ///   inform!(success, "WARNING" - "Did you remember to have lunch?");
+    ///   inform!(success, "warn".to_string(), "Did you remember to have lunch?".to_string());
     /// # }
     /// ```
     pub fn success(&mut self) -> &mut InfoLogger {
@@ -227,28 +228,28 @@ impl InfoLogger {
         self
     }
 
-    /// Builds a `failure` log, colored to look like one.
+    /// Builds a `fail` log, colored to look like one.
     /// ## Example:
     /// ```
     /// # use crate::browsy_cli::logger::InfoLogger;
     /// # use crate::browsy_cli::inform;
     /// # fn main() {
-    ///   let mut info_logger = InfoLogger::new("1tittle1", "1Message1");
+    ///   let mut info_logger = InfoLogger::new("1tittle1".to_string(), "1Message1".to_string());
     ///   info_logger.fail().log();
     ///
     ///   // Or with a simple to use macro:
     ///   // Example 1 - Uses an existing Logger
     ///   inform!(fail, info_logger);
     ///   // Example 2 - No existing Logger, just spit out the info
-    ///   inform!(fail, "WARNING" - "Did you remember to have lunch?");
+    ///   inform!(fail, "warn".to_string(), "Did you remember to have lunch?".to_string());
     /// # }
     /// ```
     pub fn fail(&mut self) -> &mut InfoLogger {
         self.log = Self::template_replace(
             Self::LOG_TEMPLATE,
             vec![
-                (1, pad!(self.tittle).on_red().white().bold()),
-                (2, pad!(self.message).yellow().bold().underline()),
+                (1, self.tittle.p().on_red().white().bold()),
+                (2, self.message.p().yellow().bold().underline()),
             ],
         );
         self
@@ -262,7 +263,7 @@ impl InfoLogger {
     /// # use crate::browsy_cli::logger::InfoLogger;
     /// # use crate::browsy_cli::inform;
     /// # fn main() {
-    ///   let mut info_logger = InfoLogger::new("1tittle1", "1Message1");
+    ///   let mut info_logger = InfoLogger::new("1tittle1".to_string(), "1Message1".to_string());
     ///   info_logger.fail().log();
     /// # }
     /// ```
@@ -289,9 +290,9 @@ impl Default for InfoLogger {
 
 #[cfg(test)]
 mod test {
-    use crate::pad;
-    use crate::text_padding::TextPadding;
     use colored::Colorize;
+
+    use crate::text_utills::TextPadding;
 
     use super::InfoLogger;
 
@@ -361,8 +362,8 @@ mod test {
         let have = InfoLogger::template_replace(
             template,
             vec![
-                (1, pad!("tittle".to_string()).on_blue().bold()),
-                (2, pad!("message".to_string()).white().italic()),
+                (1, "tittle".p().on_blue().bold()),
+                (2, "message".p().white().italic()),
             ],
         );
 
@@ -376,8 +377,8 @@ mod test {
         let have = InfoLogger::template_replace(
             template,
             vec![
-                (1, pad!("tittle".to_string()).on_black().bold()),
-                (2, pad!("messagee").white().on_bright_green()),
+                (1, "tittle".p().on_black().bold()),
+                (2, "messagee".p().on_bright_green()),
             ],
         );
 
@@ -391,8 +392,8 @@ mod test {
         let have = InfoLogger::template_replace(
             template,
             vec![
-                (1, pad!("tittleII").on_blue().bold()),
-                (2, pad!("message###").white().italic()),
+                (1, "tittleII".p().on_blue().bold()),
+                (2, "message###".p().white().italic()),
             ],
         );
 
@@ -417,7 +418,7 @@ mod test_log_macros {
     }
     #[test]
     fn test_inform_macro_source_no_tittle() {
-        let mut s = InfoLogger::new("WARNING".to_string(), "Log".to_string());
+        let mut s = InfoLogger::new("warn".to_string(), "Log".to_string());
         inform!(warn, msg "Hello".to_string(), s);
         assert!(true)
     }
