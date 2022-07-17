@@ -24,19 +24,23 @@ impl Driver {
     }
 
     pub fn run_query_against_source(&mut self) -> &mut Self {
-        println!("{:#?}", self.cli);
+        // println!("{:#?}", self.cli);
 
         let target_domain = ContentSource::from(self.cli.source());
         let query_string = ContentSource::generate_query_string(&target_domain, &self.cli.query());
 
-        line_separator!();
+        line_separator!(35);
         inform!(
             statement,
             "Searching".to_string(),
-            self.cli.query().to_uppercase(),
+            format!(
+                "\"{}\" @ {}",
+                self.cli.query().to_uppercase().bold(),
+                self.cli.source().to_uppercase().underline()
+            ),
             self.logger
         );
-        line_separator!();
+        line_separator!(35);
 
         let query_request = match self.web_client.get(query_string.clone()).build() {
             Ok(request) => {

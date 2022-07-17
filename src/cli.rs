@@ -16,7 +16,7 @@ pub struct CLI {
     query: String,
 
     /// Source to use in the query resolution
-    #[clap(short, long, value_parser = ["docs", "lib", "crates"], default_value("docs"))]
+    #[clap(short, long, value_parser = ["docs", "lib", "crates"], default_value("docs"), default_missing_value("docs"))]
     source: String,
 
     /// Allows to specefie custom querie params, like item quantitiy in responsses
@@ -32,6 +32,15 @@ pub struct CLI {
         default_missing_value("10")
     )]
     quantity: i32,
+
+    /// Specefies website page index for result pagination
+    #[clap(
+        long = "page",
+        required_ifs(&vec![("custom", "true")]),
+        default_value("1"),
+        default_missing_value("1")
+    )]
+    page_index: i32,
 
     /// Allows for usage of an interactive mode, selecting multiple factors (unimplemented)
     #[clap(long, short, required(false), default_missing_value("false"))]
