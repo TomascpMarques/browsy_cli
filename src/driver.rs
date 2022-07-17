@@ -24,6 +24,8 @@ impl Driver {
     }
 
     pub fn run_query_against_source(&mut self) -> &mut Self {
+        println!("{:#?}", self.cli);
+
         let target_domain = ContentSource::from(self.cli.source());
         let query_string = ContentSource::generate_query_string(&target_domain, &self.cli.query());
 
