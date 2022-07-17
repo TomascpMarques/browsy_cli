@@ -58,38 +58,28 @@ pub trait TextPadding {
     where
         Self: Display,
     {
-        format!("{}{}", p.repeat(c), self)
+        format!("{:wdth$}{}", p, self, wdth = c)
     }
 
     fn pad_right(&self, p: &str, c: usize) -> String
     where
         Self: Display,
     {
-        format!("{}{}", self, p.to_string().repeat(c))
+        format!("{}{:wdth$}", self, p, wdth = c)
     }
 
     fn pad(&self, p: &str, c: usize) -> String
     where
         Self: Display,
     {
-        format!(
-            "{}{}{}",
-            p.to_string().repeat(c),
-            self,
-            p.to_string().repeat(c)
-        )
+        format!("{:wdth$}{}{:wdth$}", p, self, p, wdth = c)
     }
 
     fn p(&self) -> String
     where
         Self: Display,
     {
-        format!(
-            "{}{}{}",
-            " ".to_string().repeat(1),
-            self,
-            " ".to_string().repeat(1)
-        )
+        format!("{:wdth$}{}{:wdth$}", " ", self, " ", wdth = 1)
     }
 }
 
