@@ -1,4 +1,4 @@
-use crate::querys::Query;
+use crate::{inform, querys::Query};
 use chrono::Utc;
 use clap::Parser;
 use std::process::exit;
@@ -26,41 +26,46 @@ impl Driver {
         let target_domain = ContentSource::from(self.cli.source());
         let query_string = ContentSource::generate_query_string(&target_domain, &self.cli.query());
 
-        let query_request = match self.web_client.get(query_string).build() {
+        let query_request = match self.web_client.get(query_string.clone()).build() {
             Ok(request) => {
-                self.logger
-                    .restate_log("Query building", "Given query is valid")
-                    .success()
-                    .log();
+                inform!(
+                    success,
+                    "Query building".to_string(),
+                    "Given query is valid".to_string(),
+                    self.logger
+                );
                 request
             }
             Err(_) => {
-                self.logger
-                    .restate_log(
-                        "Request Building",
-                        "Could not create request from string query",
-                    )
-                    .fail()
-                    .log();
+                inform!(
+                    fail,
+                    "Request Building".to_string(),
+                    "Could not create request from string query".to_string(),
+                    self.logger
+                );
                 exit(1)
             }
         };
 
         let query_response_string = match self.web_client.execute(query_request) {
             Ok(r) => {
-                self.logger
-                    .restate_log("Request Success", "Response is OK")
-                    .success();
+                inform!(statement, "Querying".to_string(), query_string, self.logger);
+                inform!(
+                    success,
+                    "Request Success".to_string(),
+                    "Response is OK".to_string(),
+                    self.logger
+                );
+
                 r.text().unwrap_or(Default::default())
             }
             Err(_) => {
-                self.logger
-                    .restate_log(
-                        "Bad Response",
-                        "Could not read the text content of the response",
-                    )
-                    .fail()
-                    .log();
+                inform!(
+                    fail,
+                    "Bad Response".to_string(),
+                    "Could not read the text content of the response".to_string(),
+                    self.logger
+                );
                 exit(3)
             }
         };
