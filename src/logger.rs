@@ -4,7 +4,7 @@ use colored::Colorize;
 
 use crate::text_utills::TextPadding;
 
-#[derive(Debug, PartialEq, Hash, Clone)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Clone)]
 /// A InfoLogger log is represented to the user as a pair
 /// made of a __tittle and a message__, these after being
 /// applied a log type _(ie.: success, warn, fail, etc.)_
@@ -275,16 +275,6 @@ impl InfoLogger {
     /// Clone the logs contents, and returns that cloned `String`.
     pub fn clone_log(&self) -> String {
         self.log.clone()
-    }
-}
-
-impl Default for InfoLogger {
-    fn default() -> Self {
-        Self {
-            tittle: Default::default(),
-            message: Default::default(),
-            log: Default::default(),
-        }
     }
 }
 
