@@ -13,6 +13,12 @@ pub struct Driver {
     querys: querys::QueryStore,
 }
 
+impl Default for Driver {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Driver {
     pub fn new() -> Self {
         Self {
@@ -29,7 +35,7 @@ impl Driver {
         let target_domain = ContentSource::from(self.cli.source());
         let query_string = ContentSource::generate_query_string(
             &target_domain,
-            &self.cli.query(),
+            self.cli.query(),
             match self.cli.custom() {
                 true => Some((self.cli.quantity(), self.cli.page_index())),
                 false => None,
@@ -81,7 +87,7 @@ impl Driver {
                 );
                 // Don't want to exit or crash here, so we will handle
                 // the lack of response content later, with a nice log message
-                r.text().unwrap_or(Default::default())
+                r.text().unwrap_or_default()
             }
             Err(why) => {
                 inform!(
@@ -98,7 +104,7 @@ impl Driver {
         };
 
         self.querys.add_new_query(
-            Query::new(target_domain, &self.cli.query(), Utc::now()),
+            Query::new(target_domain, self.cli.query(), Utc::now()),
             query_response_string,
         );
 

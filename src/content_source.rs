@@ -40,13 +40,13 @@ impl ContentSource {
     }
 
     pub fn parse_query(q: &str) -> String {
-        q.replace(" ", "+")
+        q.replace(' ', "+")
     }
 
     pub fn parse_docs_custom_query(query: &str, per_page: i32, page: i32) -> String {
         base64::encode(format!(
             "?q={}&per_page={}&page={}",
-            query.replace(" ", "+"),
+            query.replace(' ', "+"),
             per_page,
             page
         ))

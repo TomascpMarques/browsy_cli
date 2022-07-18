@@ -84,12 +84,7 @@ pub trait TextPadding {
     where
         Self: Display,
     {
-        format!(
-            "{}{}{}",
-            " ".to_string().repeat(1),
-            self,
-            " ".to_string().repeat(1)
-        )
+        format!(" {} ", self)
     }
 }
 

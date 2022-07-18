@@ -29,7 +29,7 @@ impl Query {
         Self {
             query: query.to_string(),
             date,
-            target: target,
+            target,
         }
     }
 
