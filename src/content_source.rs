@@ -12,8 +12,19 @@ impl Default for ContentSource {
 }
 
 impl ContentSource {
-    pub fn generate_query_string(&self, query: &str) -> String {
+    pub fn generate_query_string(&self, query: &str, custom_q: Option<(i32, i32)>) -> String {
         match self {
+            ContentSource::Docs(q) if custom_q.is_some() => {
+                format!(
+                    "{}releases/search?paginate={}",
+                    q,
+                    ContentSource::parse_docs_custom_query(
+                        query,
+                        custom_q.unwrap().0,
+                        custom_q.unwrap().1
+                    )
+                )
+            }
             ContentSource::Docs(q) => {
                 format!(
                     "{}releases/search?query={}",
@@ -30,6 +41,17 @@ impl ContentSource {
 
     pub fn parse_query(q: &str) -> String {
         q.replace(" ", "+")
+    }
+
+    pub fn parse_docs_custom_query(query: &str, per_page: i32, page: i32) -> String {
+        base64::encode(format!(
+            "?q={}&per_page={}&page={}",
+            query.replace(" ", "+"),
+            per_page,
+            page
+        ))
+        .trim_end_matches('=')
+        .to_string()
     }
 
     pub fn docs() -> ContentSource {

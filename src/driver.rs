@@ -27,7 +27,14 @@ impl Driver {
         // println!("{:#?}", self.cli);
 
         let target_domain = ContentSource::from(self.cli.source());
-        let query_string = ContentSource::generate_query_string(&target_domain, &self.cli.query());
+        let query_string = ContentSource::generate_query_string(
+            &target_domain,
+            &self.cli.query(),
+            match self.cli.custom() {
+                true => Some((self.cli.quantity(), self.cli.page_index())),
+                false => None,
+            },
+        );
 
         line_separator!(35);
         inform!(
