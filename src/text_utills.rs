@@ -84,7 +84,7 @@ pub trait TextPadding {
     where
         Self: Display,
     {
-        format!(" {} ", self)
+        format!("{:wdth$}{}{:wdth$}", " ", self, " ", wdth = 1)
     }
 }
 
