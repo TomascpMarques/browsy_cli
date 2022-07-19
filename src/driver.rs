@@ -30,7 +30,7 @@ impl Driver {
     }
 
     pub fn run_query_against_source(&mut self) -> &mut Self {
-        // println!("{:#?}", self.cli);
+        println!("{:#?}", self.cli);
 
         let target_domain = ContentSource::from(self.cli.source());
         let query_string = ContentSource::generate_query_string(
@@ -111,15 +111,16 @@ impl Driver {
         self
     }
 
+    pub fn intrepert_query_result(&self) {
+        let docs_query_results = browsy_lib::docs::DocsQuery::new(
+            self.querys().last_search_query().query,
+            self.querys().last_search_content(),
+        );
+
+        println!("{:#?}", docs_query_results.crate_results)
+    }
+
     pub fn querys(&self) -> &querys::QueryStore {
         &self.querys
-    }
-
-    pub fn intrepert_query_result(&self) {
-        todo!()
-    }
-
-    pub fn get_last_query(&self) -> &(Query, String) {
-        &self.querys.last_query
     }
 }
