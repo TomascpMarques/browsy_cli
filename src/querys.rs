@@ -57,9 +57,9 @@ impl Default for Query {
 }
 
 pub struct QueryStore {
-    pub(crate) logger: InfoLogger,
-    pub(crate) history: HashMap<ContentSource, Vec<Query>>,
-    pub(crate) last_query: (Query, String),
+    pub logger: InfoLogger,
+    pub history: HashMap<ContentSource, Vec<Query>>,
+    last_query: (Query, String),
 }
 
 impl QueryStore {
@@ -79,6 +79,18 @@ impl QueryStore {
                 self.logger
             );
         }
+    }
+
+    pub fn last_search(&self) -> (Query, String) {
+        self.last_query.clone()
+    }
+
+    pub fn last_search_query(&self) -> Query {
+        self.last_query.0.clone()
+    }
+
+    pub fn last_search_content(&self) -> String {
+        self.last_query.1.clone()
     }
 }
 
