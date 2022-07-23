@@ -1,9 +1,8 @@
 use std::collections::HashMap;
 use std::fmt::Display;
 
-use crate::inform;
-use crate::logger::InfoLogger;
-
+use browsy_helpers::inform;
+use browsy_helpers::logger::InfoLogger;
 use chrono::Utc;
 
 use chrono::DateTime;

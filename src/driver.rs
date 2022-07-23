@@ -1,9 +1,10 @@
-use crate::{
+use crate::querys::Query;
+
+use browsy_helpers::{
     inform, line_separator,
-    querys::Query,
+    logger::InfoLogger,
     text_utills::{explain_something, TextPadding},
 };
-
 use browsy_lib::docs::DocsCrate;
 use chrono::Utc;
 use clap::Parser;
@@ -11,7 +12,7 @@ use colored::Colorize;
 use std::process::exit;
 use terminal_menu::{back_button, button, label, menu, mut_menu, scroll, TerminalMenuItem};
 
-use crate::{cli::CLI, content_source::ContentSource, logger::InfoLogger, querys};
+use crate::{cli::CLI, content_source::ContentSource, querys};
 
 pub struct Driver {
     logger: InfoLogger,
