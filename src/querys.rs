@@ -10,10 +10,9 @@ use chrono::DateTime;
 
 use crate::content_source::ContentSource;
 
-#[cfg_attr(test, derive(PartialEq))]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Query {
-    pub(crate) target: ContentSource,
+    pub source: ContentSource,
     pub query: String,
     pub date: DateTime<Utc>,
 }
@@ -29,7 +28,7 @@ impl Query {
         Self {
             query: query.to_string(),
             date,
-            target,
+            source: target,
         }
     }
 
@@ -42,7 +41,7 @@ impl Query {
     }
 
     pub fn target(&self) -> &ContentSource {
-        &self.target
+        &self.source
     }
 }
 
@@ -51,15 +50,31 @@ impl Default for Query {
         Self {
             query: Default::default(),
             date: Utc::now(),
-            target: ContentSource::default(),
+            source: ContentSource::default(),
         }
+    }
+}
+
+#[derive(Clone, PartialEq, Eq, Hash, Debug, Default)]
+pub struct QueryResultPair(Query, String);
+
+impl QueryResultPair {
+    pub fn new(q: Query, c: String) -> Self {
+        QueryResultPair(q, c)
+    }
+
+    pub fn get_query(&self) -> Query {
+        self.0.clone()
+    }
+    pub fn get_content(&self) -> String {
+        self.1.clone()
     }
 }
 
 pub struct QueryStore {
     pub logger: InfoLogger,
     pub history: HashMap<ContentSource, Vec<Query>>,
-    last_query: (Query, String),
+    last_query: QueryResultPair,
 }
 
 impl QueryStore {
@@ -68,8 +83,8 @@ impl QueryStore {
     }
 
     pub fn add_new_query(&mut self, query: Query, result: String) {
-        self.last_query = (query.clone(), result);
-        if let Some(entry) = self.history.get_mut(&query.target) {
+        self.last_query = QueryResultPair::new(query.clone(), result);
+        if let Some(entry) = self.history.get_mut(&query.source) {
             entry.push(query)
         } else {
             inform!(
@@ -81,11 +96,11 @@ impl QueryStore {
         }
     }
 
-    pub fn last_search(&self) -> (Query, String) {
+    pub fn last_search(&self) -> QueryResultPair {
         self.last_query.clone()
     }
 
-    pub fn last_search_query(&self) -> Query {
+    pub fn last_search_query_source(&self) -> Query {
         self.last_query.0.clone()
     }
 
@@ -122,7 +137,7 @@ mod test_query {
 
         let have = Query::new(ContentSource::docs(), "Macro Generics", time);
         let want = Query {
-            target: ContentSource::docs(),
+            source: ContentSource::docs(),
             query: "Macro Generics".to_string(),
             date: time,
         };

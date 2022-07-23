@@ -14,4 +14,5 @@ chrono = "0.4.19"
 clap = { version = "3.2.8", features = ["derive"] }
 reqwest = { version = "0.11", features = ["blocking"] }
 base64 = "0.13.0"
+terminal-menu = "2.0.4"
 

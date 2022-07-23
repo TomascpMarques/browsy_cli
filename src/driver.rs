@@ -1,8 +1,15 @@
-use crate::{inform, line_separator, querys::Query, text_utills::explain_something};
+use crate::{
+    inform, line_separator,
+    querys::Query,
+    text_utills::{explain_something, TextPadding},
+};
+
+use browsy_lib::docs::DocsCrate;
 use chrono::Utc;
 use clap::Parser;
 use colored::Colorize;
 use std::process::exit;
+use terminal_menu::{back_button, button, label, menu, mut_menu, scroll, TerminalMenuItem};
 
 use crate::{cli::CLI, content_source::ContentSource, logger::InfoLogger, querys};
 
@@ -30,8 +37,7 @@ impl Driver {
     }
 
     pub fn run_query_against_source(&mut self) -> &mut Self {
-        println!("{:#?}", self.cli);
-
+        print!("{esc}[2J{esc}[1;1H", esc = 27 as char);
         let target_domain = ContentSource::from(self.cli.source());
         let query_string = ContentSource::generate_query_string(
             &target_domain,
@@ -112,15 +118,89 @@ impl Driver {
     }
 
     pub fn intrepert_query_result(&self) {
-        let docs_query_results = browsy_lib::docs::DocsQuery::new(
-            self.querys().last_search_query().query,
-            self.querys().last_search_content(),
-        );
+        match self.querys().last_search_query_source().source {
+            ContentSource::Docs(_) => Self::handle_docsrs_query(
+                self.querys().last_search().get_query(),
+                self.querys().last_search().get_content(),
+            ),
+            ContentSource::Lib(_) => todo!(),
+            ContentSource::Crates(_) => todo!(),
+        }
+    }
 
-        println!("{:#?}", docs_query_results.crate_results)
+    fn handle_docsrs_query(query: Query, html_content: String) {
+        let docs_query_results =
+            browsy_lib::docs::DocsQuery::new(query.query().to_string(), html_content);
+
+        let crates = docs_query_results
+            .crate_results
+            .clone()
+            .into_iter()
+            .map(|c| c.crate_widget_fmt())
+            .collect::<Vec<String>>();
+
+        let crates_descriptors = docs_query_results
+            .crate_results
+            .into_iter()
+            .collect::<Vec<DocsCrate>>();
+
+        let main = menu(vec![
+            label("Crates Found".p().white().on_green().bold().to_string()),
+            label("---------"),
+            scroll("Select a crate", crates),
+            back_button("Continue"),
+            label("---------"),
+            label("[q] To Quit".italic().bright_black().to_string()),
+        ]);
+
+        println!();
+        line_separator!(40);
+        loop {
+            print!("{esc}[2J{esc}[1;1H", esc = 27 as char);
+            terminal_menu::run(&main);
+
+            let mm = mut_menu(&main);
+            let selector = mm.selection_value("Select a crate");
+
+            if mm.canceled() {
+                break;
+            }
+
+            match crates_descriptors
+                .clone()
+                .iter()
+                .find(|&n| n.crate_widget_fmt() == selector)
+            {
+                Some(v) => crate_description_menu(v),
+                None => break,
+            };
+        }
     }
 
     pub fn querys(&self) -> &querys::QueryStore {
         &self.querys
     }
+}
+
+fn crate_description_menu(v: &DocsCrate) {
+    let mut menu_vec = vec![
+        label(
+            "Crate Description"
+                .p()
+                .white()
+                .on_green()
+                .bold()
+                .to_string(),
+        ),
+        label("---------"),
+    ];
+    let mut x = v
+        .crate_info_line_separated()
+        .iter()
+        .map(|c| label(c))
+        .collect::<Vec<TerminalMenuItem>>();
+    menu_vec.append(&mut x);
+    menu_vec.push(button("Exit"));
+    let desc_menu = terminal_menu::menu(menu_vec);
+    terminal_menu::run(&desc_menu);
 }
