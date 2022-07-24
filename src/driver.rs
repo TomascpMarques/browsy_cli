@@ -5,7 +5,8 @@ use browsy_helpers::{
     logger::InfoLogger,
     text_utills::{explain_something, TextPadding},
 };
-use browsy_lib::docs::DocsCrate;
+
+use browsy_lib::docs::{docs_crate::DocsCrate, docs_query::DocsQuery};
 use chrono::Utc;
 use clap::Parser;
 use colored::Colorize;
@@ -130,8 +131,7 @@ impl Driver {
     }
 
     fn handle_docsrs_query(query: Query, html_content: String) {
-        let docs_query_results =
-            browsy_lib::docs::DocsQuery::new(query.query().to_string(), html_content);
+        let docs_query_results = DocsQuery::new(query.query().to_string(), html_content);
 
         let crates = docs_query_results
             .crate_results
