@@ -6,7 +6,7 @@ use browsy_helpers::{
     text_utills::{explain_something, TextPadding},
 };
 
-use browsy_lib::docs::{docs_crate::DocsCrate, docs_query::DocsQuery};
+use browsy_lib::docs::{crate_details::DocsCrate, query_crates::DocsQuery};
 use chrono::Utc;
 use clap::Parser;
 use colored::Colorize;
